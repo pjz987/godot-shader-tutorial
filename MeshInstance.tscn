@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://mesh_instance.gd" type="Script" id=1]
+
+[sub_resource type="Shader" id=1]
+code = "shader_type spatial;
+
+uniform sampler2D noise;
+uniform sampler2D normalmap;
+
+uniform float height_scale = 0.5;
+
+varying vec2 tex_position;
+
+//https://docs.godotengine.org/en/stable/tutorials/shading/your_first_shader/your_first_spatial_shader.html
+
+//void vertex() {
+//	VERTEX.y = cos(VERTEX.x * 4.0) * sin(VERTEX.z * 4.0);
+//}
+
+void vertex() {
+	tex_position = VERTEX.xz / 2.0 + 0.5;
+	float height = texture(noise, tex_position).x;
+	VERTEX.y += height * height_scale;
+}
+
+void fragment() {
+	NORMALMAP = texture(normalmap, tex_position).xyz;
+}"
+
+[sub_resource type="OpenSimplexNoise" id=4]
+
+[sub_resource type="NoiseTexture" id=5]
+noise = SubResource( 4 )
+
+[sub_resource type="OpenSimplexNoise" id=6]
+
+[sub_resource type="NoiseTexture" id=7]
+as_normalmap = true
+noise = SubResource( 6 )
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/height_scale = 0.5
+shader_param/noise = SubResource( 5 )
+shader_param/normalmap = SubResource( 7 )
+
+[sub_resource type="PlaneMesh" id=3]
+material = SubResource( 2 )
+subdivide_width = 32
+subdivide_depth = 32
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = SubResource( 3 )
+material/0 = null
+script = ExtResource( 1 )
+
+[node name="OmniLight" type="OmniLight" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.372593, 0 )
